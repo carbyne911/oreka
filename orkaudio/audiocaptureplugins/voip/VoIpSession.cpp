@@ -35,6 +35,12 @@ extern CaptureEventCallBackFunction g_captureEventCallBack;
 	VoIpSessions* VoIpSessionsSingleton::voipSessions = NULL;
 #endif
 
+
+VoIpSession::VoIpSession(CStdString& trackingId, u_char* ifName) : VoIpSession(trackingId)
+{
+	m_ifName = CStdString((const char*)ifName);
+}
+
 VoIpSession::VoIpSession(CStdString& trackingId) : OrkSession(&DLLCONFIG),
 	m_hasReceivedCallInfo(false),
 	m_creationDate()
@@ -967,6 +973,13 @@ void VoIpSession::ReportMetadata()
 	event.reset(new CaptureEvent());
 	event->m_type = CaptureEvent::EtCallId;
 	event->m_value = m_callId;
+	g_captureEventCallBack(event, m_capturePort);
+
+	event.reset(new CaptureEvent());
+	logMsg = "DEBUGG Send EtInterface ifName=" + m_ifName;
+	LOG4CXX_INFO(m_log, logMsg);
+	event->m_type = CaptureEvent::EtInterface;
+	event->m_value = m_ifName;
 	g_captureEventCallBack(event, m_capturePort);
 
 	if(m_onDemand == true)
@@ -1955,7 +1968,7 @@ VoIpSessions::VoIpSessions()
 }
 
 
-void VoIpSessions::ReportSipInvite(SipInviteInfoRef& invite)
+void VoIpSessions::ReportSipInvite(SipInviteInfoRef& invite, u_char* ifName)
 {
 	if(DLLCONFIG.m_sipIgnoredMediaAddresses.Matches(invite->m_fromRtpIp))
 	{
@@ -2085,7 +2098,7 @@ void VoIpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 
 	// create new session and insert into both maps
 	CStdString trackingId = m_alphaCounter.GetNext();
-	VoIpSessionRef newSession(new VoIpSession(trackingId));
+	VoIpSessionRef newSession(new VoIpSession(trackingId, ifName));
 	if(DLLCONFIG.m_sipCallPickUpSupport)
 	{
 		TrySessionCallPickUp(invite->m_replacesId, newSession->m_isCallPickUp);

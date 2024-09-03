@@ -52,6 +52,7 @@ void TapeMsg::Define(Serializer* s)
 	//s->StringValue(LOCAL_MAC_PARAM, m_localMac);
 	//s->StringValue(REMOTE_MAC_PARAM, m_remoteMac);
 	s->StringValue(NATIVE_CALLID_PARAM, m_nativeCallId);
+	s->StringValue(IF_NAME_PARAM, m_ifName);
 
 	s->CsvMapValue(TAGS_PARAM, m_tags);
 	s->BoolValue(ON_DEMAND_PARAM, m_onDemand);
@@ -160,6 +161,7 @@ MessageRef TapeMsg::Clone() {
 	clone->m_remoteIp           = this->m_remoteIp;
 	clone->m_nativeCallId       = this->m_nativeCallId;
 	clone->m_onDemand           = this->m_onDemand;
+	clone->m_ifName             = this->m_ifName;
 	clone->m_live               = this->m_live;
 
 	// Copy the tags!

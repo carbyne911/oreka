@@ -79,6 +79,7 @@ public:
 	CStdString m_remoteIp;
 	CStdString m_filename;
 	CStdString m_nativeCallId;
+	CStdString m_ifName;
 	bool m_onDemand;
 };
 
@@ -132,6 +133,7 @@ public:
 	CStdString m_remoteIp;
 	CStdString m_trackingId;
 	CStdString m_nativeCallId;
+	CStdString m_ifName;
 	StateEnum m_state;
 	int m_numErrors;
 	bool m_onDemand;

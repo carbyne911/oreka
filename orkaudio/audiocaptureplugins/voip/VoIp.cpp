@@ -471,7 +471,7 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 	return result;
 }
 
-void DetectUsefulUdpPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, int ipHeaderLength, u_char* ipPacketEnd)
+void DetectUsefulUdpPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, int ipHeaderLength, u_char* ipPacketEnd, u_char* ifName)
 {
 	UdpHeaderStruct* udpHeader = (UdpHeaderStruct*)((char *)ipHeader + ipHeaderLength);
 	if(ntohs(udpHeader->source) >= DLLCONFIG.m_udpMinPort && ntohs(udpHeader->dest) >= DLLCONFIG.m_udpMinPort)
@@ -484,7 +484,7 @@ void DetectUsefulUdpPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 		detectedUsefulPacket = TryRtp(ethernetHeader, ipHeader, udpHeader, udpPayload);
 
 		if(!detectedUsefulPacket) {
-			detectedUsefulPacket= TrySipInvite(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
+			detectedUsefulPacket= TrySipInvite(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd, ifName);
 		}
 
 		if(!detectedUsefulPacket) {
@@ -683,7 +683,7 @@ bool TryIpPacketV4(IpHeaderStruct* ipHeader)
 #define IANA_VXLAN_UDP_PORT     4789
 #define IANA_VXLAN_GPE_UDP_PORT 4790
 
-void ProcessVXLANPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, int ipHeaderLength, u_char* ipPacketEnd)
+void ProcessVXLANPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, int ipHeaderLength, u_char* ipPacketEnd, u_char* ifName)
 {
 	//extract inner frame
 	u_char* udpPayload = (u_char *)ipHeader + ipHeaderLength + sizeof(UdpHeaderStruct);
@@ -718,7 +718,7 @@ void ProcessVXLANPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ip
 
 	if(encapsulatedIpHeader->ip_p == IPPROTO_UDP)
 	{
-		DetectUsefulUdpPacket(encapsulatedEthernetHeader, encapsulatedIpHeader, encapsulatedIpHeaderLength, encapsulatedIpPacketEnd);
+		DetectUsefulUdpPacket(encapsulatedEthernetHeader, encapsulatedIpHeader, encapsulatedIpHeaderLength, encapsulatedIpPacketEnd, ifName);
 	}
 	else if(encapsulatedIpHeader->ip_p == IPPROTO_TCP)
 	{
@@ -726,7 +726,7 @@ void ProcessVXLANPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ip
 	}
 }
 
-void ProcessTransportLayer(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader) {
+void ProcessTransportLayer(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, u_char* ifName) {
 	size_t ipHeaderLength = ipHeader->headerLen();
 	u_char* ipPacketEnd    = reinterpret_cast<unsigned char*>(ipHeader) + ipHeader->packetLen();
 
@@ -735,11 +735,11 @@ void ProcessTransportLayer(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 		UdpHeaderStruct* udpHeader = (UdpHeaderStruct*)((char *)ipHeader + ipHeaderLength);
 		if(ntohs(udpHeader->dest) == IANA_VXLAN_UDP_PORT)
 		{
-			ProcessVXLANPacket(ethernetHeader, ipHeader, ipHeaderLength, ipPacketEnd);
+			ProcessVXLANPacket(ethernetHeader, ipHeader, ipHeaderLength, ipPacketEnd, ifName);
 		}
 		else 
 		{
-			DetectUsefulUdpPacket(ethernetHeader, ipHeader, ipHeaderLength, ipPacketEnd);
+			DetectUsefulUdpPacket(ethernetHeader, ipHeader, ipHeaderLength, ipPacketEnd, ifName);
 		}
 	}
 	else if(ipHeader->ip_p == IPPROTO_TCP)
@@ -786,7 +786,7 @@ void ProcessTransportLayer(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 
 			if(encapsulatedIpHeader->ip_p == IPPROTO_UDP)
 			{
-				DetectUsefulUdpPacket(encapsulatedEthernetHeader, encapsulatedIpHeader, encapsulatedIpHeaderLength, encapsulatedIpPacketEnd);
+				DetectUsefulUdpPacket(encapsulatedEthernetHeader, encapsulatedIpHeader, encapsulatedIpHeaderLength, encapsulatedIpPacketEnd, ifName);
 			}
 			else if(encapsulatedIpHeader->ip_p == IPPROTO_TCP)
 			{
@@ -796,7 +796,7 @@ void ProcessTransportLayer(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 	}
 }
 
-void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char *pkt_data)
+void HandlePacket(u_char *ifName, const struct pcap_pkthdr *header, const u_char *pkt_data)
 {
 	time_t now = time(NULL);
 
@@ -941,11 +941,11 @@ void HandlePacket(u_char *param, const struct pcap_pkthdr *header, const u_char 
 	if (DLLCONFIG.m_ipFragmentsReassemble && ipHeader->isFragmented()) {
 		SizedBufferRef packetData = HandleIpFragment(ipHeader);	
 		if (packetData) { // Packet data will return non-empty when the packet is complete
-			ProcessTransportLayer(ethernetHeader,reinterpret_cast<IpHeaderStruct*>(packetData->get()) );
+			ProcessTransportLayer(ethernetHeader,reinterpret_cast<IpHeaderStruct*>(packetData->get()), ifName );
 		}
 	}
 	else {
-		ProcessTransportLayer(ethernetHeader,ipHeader);
+		ProcessTransportLayer(ethernetHeader,ipHeader, ifName);
 	}
 
 	if((now - s_lastHooveringTime) > 5)
@@ -977,8 +977,11 @@ void SingleDeviceCaptureThreadHandler(pcap_t* pcapHandle)
 	{
 		CStdString log;
 		log.Format("Start Capturing: pcap handle:%x", pcapHandle);
+		CStdString deviceName;
 		LOG4CXX_INFO(s_packetLog, log);
-		pcap_loop(pcapHandle, 0, HandlePacket, NULL);
+		deviceName = VoIpSingleton::instance()->GetPcapDeviceName(pcapHandle);
+
+		pcap_loop(pcapHandle, 0, HandlePacket, (u_char*)deviceName.c_str());
 		if(!s_liveCapture)
 		{
 			// This is a pcap file replay, stop all sessions before exiting
@@ -991,10 +994,10 @@ void SingleDeviceCaptureThreadHandler(pcap_t* pcapHandle)
 
 		if(s_liveCapture == true)
 		{
-			CStdString deviceName;
+
 			pcap_t* oldHandle = NULL;
 
-			deviceName = VoIpSingleton::instance()->GetPcapDeviceName(pcapHandle);
+
 			if(deviceName.size())
 			{
 				oldHandle = pcapHandle;
@@ -1014,7 +1017,7 @@ void SingleDeviceCaptureThreadHandler(pcap_t* pcapHandle)
 						log.Format("Start Capturing: pcap handle:%x", pcapHandle);
 						LOG4CXX_INFO(s_packetLog, log);
 
-						pcap_loop(pcapHandle, 0, HandlePacket, NULL);
+						pcap_loop(pcapHandle, 0, HandlePacket, (u_char*)deviceName.c_str());
 
 						log.Format("Stop Capturing: pcap handle:%x", pcapHandle);
 						LOG4CXX_INFO(s_packetLog, log);
@@ -1551,7 +1554,7 @@ void VoIp::OpenDevices()
 	{
 		if(devices)
 		{
-			LOG4CXX_INFO(s_packetLog, CStdString("Available pcap devices:"));
+			LOG4CXX_INFO(s_packetLog, CStdString("DEBUGGG Available pcap devices:"));
 
 			for (pcap_if_t* device = devices; device != NULL; device = device->next)
 			{
@@ -1938,10 +1941,14 @@ void VoIp::Run()
 #endif
 	}
 
+	LOG4CXX_INFO(s_packetLog, "DEBUGG before device iteration");
+
 	for(auto it = m_pcapDeviceMap.begin(); it != m_pcapDeviceMap.end(); it++)
 	{
 		try{
 			std::thread handler(SingleDeviceCaptureThreadHandler, it->first);
+			logMsg.Format("DEBUGG start listen on device:%s", it->second->ifName.c_str());
+			LOG4CXX_INFO(s_packetLog, logMsg);	
 			handler.detach();
 		} catch(const std::exception &ex){
 			logMsg.Format("Failed to start SingleDeviceCaptureThreadHandler thread reason:%s",  ex.what());
