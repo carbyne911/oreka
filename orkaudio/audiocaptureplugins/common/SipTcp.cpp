@@ -127,7 +127,7 @@ void SipTcpStream::AddTcpPacket(u_char *pBuffer, int packetLen)
 }
 
 
-extern bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct *udpHeader, u_char* payload, u_char* packetEnd);
+extern bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct *udpHeader, u_char* payload, u_char* packetEnd, u_char* ifName);
 extern bool TrySip200Ok(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct *udpHeader, u_char* payload, u_char* packetEnd);
 extern bool TrySipNotify(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct *udpHeader, u_char* payload, u_char* packetEnd);
 extern bool TrySipSessionProgress(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct *udpHeader, u_char* payload, u_char* packetEnd);
@@ -147,7 +147,7 @@ bool ParseSipMessage(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHea
 
 		udpHeader.len = htons((packetEnd-payload)+sizeof(UdpHeaderStruct));
 
-		bool usefulPacket = TrySipInvite(ethernetHeader, ipHeader, &udpHeader, payload, packetEnd);
+		bool usefulPacket = TrySipInvite(ethernetHeader, ipHeader, &udpHeader, payload, packetEnd, NULL);
 
 		if(!usefulPacket)
 		{
