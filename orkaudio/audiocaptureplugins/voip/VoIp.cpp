@@ -1554,6 +1554,8 @@ void VoIp::OpenDevices()
 	{
 		if(devices)
 		{
+			LOG4CXX_INFO(s_packetLog, CStdString("Available pcap devices:"));
+
 			for (pcap_if_t* device = devices; device != NULL; device = device->next)
 			{
 				if(!device){break;}
@@ -1938,8 +1940,6 @@ void VoIp::Run()
 		}
 #endif
 	}
-
-	LOG4CXX_INFO(s_packetLog, "DEBUGG before device iteration");
 
 	for(auto it = m_pcapDeviceMap.begin(); it != m_pcapDeviceMap.end(); it++)
 	{
