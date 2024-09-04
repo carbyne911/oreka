@@ -976,8 +976,6 @@ void VoIpSession::ReportMetadata()
 	g_captureEventCallBack(event, m_capturePort);
 
 	event.reset(new CaptureEvent());
-	logMsg = "DEBUGG Send EtInterface ifName=" + m_ifName;
-	LOG4CXX_INFO(m_log, logMsg);
 	event->m_type = CaptureEvent::EtInterface;
 	event->m_value = m_ifName;
 	g_captureEventCallBack(event, m_capturePort);

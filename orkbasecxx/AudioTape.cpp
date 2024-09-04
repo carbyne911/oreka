@@ -538,7 +538,6 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 		m_nativeCallId = eventRef->m_value;
 		break;
 	case CaptureEvent::EtInterface:
-		LOG4CXX_INFO(LOG.tapeLog, "DEBUGG EtInterface");
 		m_ifName = eventRef->m_value;
 		break;
 	case CaptureEvent::EtKeyValue:

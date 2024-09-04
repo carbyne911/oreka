@@ -1554,8 +1554,6 @@ void VoIp::OpenDevices()
 	{
 		if(devices)
 		{
-			LOG4CXX_INFO(s_packetLog, CStdString("DEBUGGG Available pcap devices:"));
-
 			for (pcap_if_t* device = devices; device != NULL; device = device->next)
 			{
 				if(!device){break;}
@@ -1947,8 +1945,6 @@ void VoIp::Run()
 	{
 		try{
 			std::thread handler(SingleDeviceCaptureThreadHandler, it->first);
-			logMsg.Format("DEBUGG start listen on device:%s", it->second->ifName.c_str());
-			LOG4CXX_INFO(s_packetLog, logMsg);	
 			handler.detach();
 		} catch(const std::exception &ex){
 			logMsg.Format("Failed to start SingleDeviceCaptureThreadHandler thread reason:%s",  ex.what());
