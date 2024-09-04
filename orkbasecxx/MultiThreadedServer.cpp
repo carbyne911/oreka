@@ -814,28 +814,6 @@ void EventStreamingServer::StreamingSvc(apr_socket_t* sock, apr_pool_t* pool)
 
 			time_t startTime = time(NULL);
 
-	if(0) {
-            sleep(5);
-			CStdString startMessage("type=tape&recid=20231201_155644_GJEA&stage=start&captureport=GJEA&timestamp=1701439004&filename=2023%2F12%2F01%2F15%2F20231201_155644_GJEA&localparty=84ye3dkhjp@192.168.120.139&localentrypoint=380947108567@sip.phone.systems&remoteparty=380731000514@sip.phone.systems&direction=in&duration=0&service=orkaudio-ip-10-10-10-173&localip=46.19.210.27&remoteip=192.168.120.139&nativecallid=2-2FA0B3E3-6569E61B0002BDCE-F2D596C0&tags=From%3A%22%2B380731000514%22+%3Csip%25pk380731000514@sip.phone.systems%3E%3Btag%3D2-5DE5277A-6569E61B0002BDCC-F2D596C0%2CTo%3A%3Csip%25pk380947108567@sip.phone.systems%3E&ondemand=false&side=both&live=true&hostname=ip-10-10-10-173&");
-            CStdString startMessageWithDelim = startMessage + "\r\n";
-            leng = startMessageWithDelim.GetLength();
-            ret = apr_socket_send(sock, startMessageWithDelim, &leng);
-
-
-	    		sleep(12);
-			CStdString stopMessage("type=tape&recid=20231201_155644_GJEA&stage=stop&captureport=GJEA&timestamp=1701439004&filename=2023%2F12%2F01%2F15%2F20231201_155644_GJEA.wav&localparty=84ye3dkhjp@192.168.120.139&localentrypoint=380947108567@sip.phone.systems&remoteparty=380731000514@sip.phone.systems&direction=in&duration=12&service=orkaudio-ip-10-10-10-173&localip=46.19.210.27&remoteip=192.168.120.139&nativecallid=2-2FA0B3E3-6569E61B0002BDCE-F2D596C0&tags=From%3A%22%2B380731000514%22+%3Csip%25pk380731000514@sip.phone.systems%3E%3Btag%3D2-5DE5277A-6569E61B0002BDCC-F2D596C0%2CTo%3A%3Csip%25pk380947108567@sip.phone.systems%3E&ondemand=false&side=both&live=true&hostname=ip-10-10-10-173&");
-			CStdString stopMessageWithDelim = stopMessage + "\r\n";
-            		leng = stopMessageWithDelim.GetLength();
-            		ret = apr_socket_send(sock, stopMessageWithDelim, &leng);
-
-			sleep(10);
-
-
-			CStdString readyMessage("type=tape&recid=20231201_155644_GJEA&stage=ready&captureport=GJEA&timestamp=1701439004&filename=2023%2F12%2F01%2F15%2F20231201_155644_GJEA.wav&localparty=84ye3dkhjp@192.168.120.139&localentrypoint=380947108567@sip.phone.systems&remoteparty=380731000514@sip.phone.systems&direction=in&duration=12&service=orkaudio-ip-10-10-10-173&localip=46.19.210.27&remoteip=192.168.120.139&nativecallid=2-2FA0B3E3-6569E61B0002BDCE-F2D596C0&tags=From%3A%22%2B380731000514%22+%3Csip%25pk380731000514@sip.phone.systems%3E%3Btag%3D2-5DE5277A-6569E61B0002BDCC-F2D596C0%2CTo%3A%3Csip%25pk380947108567@sip.phone.systems%3E&ondemand=false&side=both&live=true&hostname=ip-10-10-10-173&");
-                        CStdString readyMessageWithDelim = readyMessage + "\r\n";
-                        leng = readyMessageWithDelim.GetLength();
-                        ret = apr_socket_send(sock, readyMessageWithDelim, &leng);}
-
 			sessionId = EventStreamingSingleton::instance()->GetNewSessionId() + " -";
 			logMsg.Format("%s Event streaming start", sessionId);
 			LOG4CXX_INFO(s_log, logMsg);
