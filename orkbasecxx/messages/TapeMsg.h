@@ -75,7 +75,7 @@ public:
 	CStdString m_localMac;
 	CStdString m_remoteMac;
 	CStdString m_nativeCallId;
-	CStdString m_ifName;
+	CStdString m_interfaceName;
 
 	std::map<CStdString, CStdString> m_tags;
 	bool m_onDemand;

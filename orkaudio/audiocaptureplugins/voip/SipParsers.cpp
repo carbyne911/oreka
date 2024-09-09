@@ -1259,7 +1259,7 @@ bool TrySipSubscribe(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHea
 	return result;
 
 }
-bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd, u_char* ifName)
+bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd, u_char* interfaceName)
 {
 	CStdString logMsg;
 	bool result = false;
@@ -1749,11 +1749,11 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		//Sip INVITE without sdp will be reported, but other methods without sdp will not be
 		if(drop == false && sipMethod == SIP_METHOD_INVITE && info->m_from.size() && info->m_to.size() && info->m_callId.size())
 		{
-			VoIpSessionsSingleton::instance()->ReportSipInvite(info, ifName);
+			VoIpSessionsSingleton::instance()->ReportSipInvite(info, interfaceName);
 		}
 		else if(drop == false && info->m_fromRtpPort.size() && info->m_from.size() && info->m_to.size() && info->m_callId.size())
 		{
-			VoIpSessionsSingleton::instance()->ReportSipInvite(info, ifName);
+			VoIpSessionsSingleton::instance()->ReportSipInvite(info, interfaceName);
 		}
 	}
 	return result;

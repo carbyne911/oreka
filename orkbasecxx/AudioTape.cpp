@@ -63,7 +63,7 @@ void AudioTapeDescription::Define(Serializer* s)
 	s->StringValue("remoteIp", m_remoteIp);
 	s->StringValue("filename", m_filename);
 	s->StringValue("nativeCallId", m_nativeCallId);
-	s->StringValue("interface", m_ifName);
+	s->StringValue("interface", m_interfaceName);
 	s->BoolValue("ondemand", m_onDemand);
 }
 
@@ -433,7 +433,7 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 			atd.m_remoteIp = m_remoteIp;
 			atd.m_onDemand = m_onDemand;
 			atd.m_nativeCallId = m_nativeCallId;
-			atd.m_ifName = m_ifName;
+			atd.m_interfaceName = m_interfaceName;
 			atd.m_filename = GetFilename();
 			CStdString description = atd.SerializeSingleLine();
 			LOG4CXX_INFO(LOG.tapelistLog, description);
@@ -538,7 +538,7 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 		m_nativeCallId = eventRef->m_value;
 		break;
 	case CaptureEvent::EtInterface:
-		m_ifName = eventRef->m_value;
+		m_interfaceName = eventRef->m_value;
 		break;
 	case CaptureEvent::EtKeyValue:
 		if(eventRef->m_key.CompareNoCase("ondemand") == 0)
@@ -734,7 +734,7 @@ void AudioTape::PopulateTapeMessage(TapeMsg* msg, CaptureEvent::EventTypeEnum ev
 	msg->m_remoteIp = m_remoteIp;
 	msg->m_nativeCallId = m_nativeCallId;
 	msg->m_onDemand = m_onDemand;
-	msg->m_ifName = m_ifName;
+	msg->m_interfaceName = m_interfaceName;
 
 	MutexSentinel sentinel(m_mutex);;
 	std::copy(m_tags.begin(), m_tags.end(), std::inserter(msg->m_tags, msg->m_tags.begin()));

@@ -36,9 +36,9 @@ extern CaptureEventCallBackFunction g_captureEventCallBack;
 #endif
 
 
-VoIpSession::VoIpSession(CStdString& trackingId, u_char* ifName) : VoIpSession(trackingId)
+VoIpSession::VoIpSession(CStdString& trackingId, u_char* interfaceName) : VoIpSession(trackingId)
 {
-	m_ifName = CStdString((const char*)ifName);
+	m_interfaceName = CStdString((const char*)interfaceName);
 }
 
 VoIpSession::VoIpSession(CStdString& trackingId) : OrkSession(&DLLCONFIG),
@@ -977,7 +977,7 @@ void VoIpSession::ReportMetadata()
 
 	event.reset(new CaptureEvent());
 	event->m_type = CaptureEvent::EtInterface;
-	event->m_value = m_ifName;
+	event->m_value = m_interfaceName;
 	g_captureEventCallBack(event, m_capturePort);
 
 	if(m_onDemand == true)
@@ -1966,7 +1966,7 @@ VoIpSessions::VoIpSessions()
 }
 
 
-void VoIpSessions::ReportSipInvite(SipInviteInfoRef& invite, u_char* ifName)
+void VoIpSessions::ReportSipInvite(SipInviteInfoRef& invite, u_char* interfaceName)
 {
 	if(DLLCONFIG.m_sipIgnoredMediaAddresses.Matches(invite->m_fromRtpIp))
 	{
@@ -2096,7 +2096,7 @@ void VoIpSessions::ReportSipInvite(SipInviteInfoRef& invite, u_char* ifName)
 
 	// create new session and insert into both maps
 	CStdString trackingId = m_alphaCounter.GetNext();
-	VoIpSessionRef newSession(new VoIpSession(trackingId, ifName));
+	VoIpSessionRef newSession(new VoIpSession(trackingId, interfaceName));
 	if(DLLCONFIG.m_sipCallPickUpSupport)
 	{
 		TrySessionCallPickUp(invite->m_replacesId, newSession->m_isCallPickUp);

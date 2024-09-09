@@ -471,7 +471,7 @@ bool TryRtp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpH
 	return result;
 }
 
-void DetectUsefulUdpPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, int ipHeaderLength, u_char* ipPacketEnd, u_char* ifName)
+void DetectUsefulUdpPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, int ipHeaderLength, u_char* ipPacketEnd, u_char* interfaceName)
 {
 	UdpHeaderStruct* udpHeader = (UdpHeaderStruct*)((char *)ipHeader + ipHeaderLength);
 	if(ntohs(udpHeader->source) >= DLLCONFIG.m_udpMinPort && ntohs(udpHeader->dest) >= DLLCONFIG.m_udpMinPort)
@@ -484,7 +484,7 @@ void DetectUsefulUdpPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 		detectedUsefulPacket = TryRtp(ethernetHeader, ipHeader, udpHeader, udpPayload);
 
 		if(!detectedUsefulPacket) {
-			detectedUsefulPacket= TrySipInvite(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd, ifName);
+			detectedUsefulPacket= TrySipInvite(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd, interfaceName);
 		}
 
 		if(!detectedUsefulPacket) {
@@ -683,7 +683,7 @@ bool TryIpPacketV4(IpHeaderStruct* ipHeader)
 #define IANA_VXLAN_UDP_PORT     4789
 #define IANA_VXLAN_GPE_UDP_PORT 4790
 
-void ProcessVXLANPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, int ipHeaderLength, u_char* ipPacketEnd, u_char* ifName)
+void ProcessVXLANPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, int ipHeaderLength, u_char* ipPacketEnd, u_char* interfaceName)
 {
 	//extract inner frame
 	u_char* udpPayload = (u_char *)ipHeader + ipHeaderLength + sizeof(UdpHeaderStruct);
@@ -718,7 +718,7 @@ void ProcessVXLANPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ip
 
 	if(encapsulatedIpHeader->ip_p == IPPROTO_UDP)
 	{
-		DetectUsefulUdpPacket(encapsulatedEthernetHeader, encapsulatedIpHeader, encapsulatedIpHeaderLength, encapsulatedIpPacketEnd, ifName);
+		DetectUsefulUdpPacket(encapsulatedEthernetHeader, encapsulatedIpHeader, encapsulatedIpHeaderLength, encapsulatedIpPacketEnd, interfaceName);
 	}
 	else if(encapsulatedIpHeader->ip_p == IPPROTO_TCP)
 	{
@@ -726,7 +726,7 @@ void ProcessVXLANPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ip
 	}
 }
 
-void ProcessTransportLayer(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, u_char* ifName) {
+void ProcessTransportLayer(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, u_char* interfaceName) {
 	size_t ipHeaderLength = ipHeader->headerLen();
 	u_char* ipPacketEnd    = reinterpret_cast<unsigned char*>(ipHeader) + ipHeader->packetLen();
 
@@ -735,11 +735,11 @@ void ProcessTransportLayer(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 		UdpHeaderStruct* udpHeader = (UdpHeaderStruct*)((char *)ipHeader + ipHeaderLength);
 		if(ntohs(udpHeader->dest) == IANA_VXLAN_UDP_PORT)
 		{
-			ProcessVXLANPacket(ethernetHeader, ipHeader, ipHeaderLength, ipPacketEnd, ifName);
+			ProcessVXLANPacket(ethernetHeader, ipHeader, ipHeaderLength, ipPacketEnd, interfaceName);
 		}
 		else 
 		{
-			DetectUsefulUdpPacket(ethernetHeader, ipHeader, ipHeaderLength, ipPacketEnd, ifName);
+			DetectUsefulUdpPacket(ethernetHeader, ipHeader, ipHeaderLength, ipPacketEnd, interfaceName);
 		}
 	}
 	else if(ipHeader->ip_p == IPPROTO_TCP)
@@ -786,7 +786,7 @@ void ProcessTransportLayer(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 
 			if(encapsulatedIpHeader->ip_p == IPPROTO_UDP)
 			{
-				DetectUsefulUdpPacket(encapsulatedEthernetHeader, encapsulatedIpHeader, encapsulatedIpHeaderLength, encapsulatedIpPacketEnd, ifName);
+				DetectUsefulUdpPacket(encapsulatedEthernetHeader, encapsulatedIpHeader, encapsulatedIpHeaderLength, encapsulatedIpPacketEnd, interfaceName);
 			}
 			else if(encapsulatedIpHeader->ip_p == IPPROTO_TCP)
 			{
@@ -796,7 +796,7 @@ void ProcessTransportLayer(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 	}
 }
 
-void HandlePacket(u_char *ifName, const struct pcap_pkthdr *header, const u_char *pkt_data)
+void HandlePacket(u_char *interfaceName, const struct pcap_pkthdr *header, const u_char *pkt_data)
 {
 	time_t now = time(NULL);
 
@@ -941,11 +941,11 @@ void HandlePacket(u_char *ifName, const struct pcap_pkthdr *header, const u_char
 	if (DLLCONFIG.m_ipFragmentsReassemble && ipHeader->isFragmented()) {
 		SizedBufferRef packetData = HandleIpFragment(ipHeader);	
 		if (packetData) { // Packet data will return non-empty when the packet is complete
-			ProcessTransportLayer(ethernetHeader,reinterpret_cast<IpHeaderStruct*>(packetData->get()), ifName );
+			ProcessTransportLayer(ethernetHeader,reinterpret_cast<IpHeaderStruct*>(packetData->get()), interfaceName);
 		}
 	}
 	else {
-		ProcessTransportLayer(ethernetHeader,ipHeader, ifName);
+		ProcessTransportLayer(ethernetHeader,ipHeader, interfaceName);
 	}
 
 	if((now - s_lastHooveringTime) > 5)
