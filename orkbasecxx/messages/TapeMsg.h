@@ -32,6 +32,7 @@
 #define LOCAL_MAC_PARAM "localmac"
 #define REMOTE_MAC_PARAM "remotemac"
 #define NATIVE_CALLID_PARAM "nativecallid"
+#define IF_NAME_PARAM "interface"
 #define TAGS_PARAM "tags"
 #define ON_DEMAND_PARAM "ondemand"
 //#define LOCALSIDE_PARAM "localside"
@@ -74,6 +75,7 @@ public:
 	CStdString m_localMac;
 	CStdString m_remoteMac;
 	CStdString m_nativeCallId;
+	CStdString m_interfaceName;
 
 	std::map<CStdString, CStdString> m_tags;
 	bool m_onDemand;

@@ -80,6 +80,7 @@ public:
 	static int ProtocolToEnum(CStdString& protocol);
 	static CStdString ProtocolToString(int protocolEnum);
 
+	VoIpSession(CStdString& trackingId, u_char* interfaceName);
 	VoIpSession(CStdString& trackingId);
 	void Stop();
 	virtual void Start();
@@ -157,6 +158,7 @@ public:
 	unsigned int m_ssrcCandidate;
 	void ReportMetadataUpdateSkinny();
 	bool m_hasReceivedCallInfo;
+	CStdString m_interfaceName;
 
 private:
 	void ProcessMetadataSip(RtpPacketInfoRef&);
@@ -201,7 +203,7 @@ public:
 	VoIpSessions();
 	void Stop(VoIpSessionRef& session);
 	void StopAll();
-	VIT void ReportSipInvite(SipInviteInfoRef& invite);
+	VIT void ReportSipInvite(SipInviteInfoRef& invite, u_char* interfaceName);
 	VIT void ReportSipNotify(SipNotifyInfoRef& notify);
 	VIT void ReportSipBye(SipByeInfoRef& bye);
 	void ReportSipSubscribe(SipSubscribeInfoRef& subscribe);

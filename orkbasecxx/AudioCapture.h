@@ -195,6 +195,7 @@ public:
 #define ET_CALLID "callid"
 #define ET_INVALID "invalid"
 #define ET_LOCALSIDE "localside"
+#define ET_INTERFACE "interface"
 #define ET_AUDIOKEEPDIRECTION "audiokeepdirection"
 	typedef enum
 	{
@@ -219,7 +220,8 @@ public:
                 EtAudioKeepDirection = 18,
 		EtHold = 19,
 		EtResume = 20,
-		EtInvalid = 21
+		EtInterface = 21,
+		EtInvalid = 22
 	} EventTypeEnum;
 	static CStdString EventTypeToString(int eventTypeEnum);
 	static int EventTypeToEnum(CStdString&);
