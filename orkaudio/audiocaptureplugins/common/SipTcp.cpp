@@ -147,11 +147,7 @@ bool ParseSipMessage(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHea
 
 		udpHeader.len = htons((packetEnd-payload)+sizeof(UdpHeaderStruct));
 
-<<<<<<< Updated upstream
-		bool usefulPacket = TrySipInvite(ethernetHeader, ipHeader, &udpHeader, payload, packetEnd);
-=======
 		bool usefulPacket = TrySipInvite(ethernetHeader, ipHeader, &udpHeader, payload, packetEnd, interfaceName);
->>>>>>> Stashed changes
 
 		if(!usefulPacket)
 		{
