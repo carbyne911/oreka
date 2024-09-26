@@ -2096,6 +2096,7 @@ void VoIpSessions::ReportSipInvite(SipInviteInfoRef& invite, u_char* interfaceNa
 
 	// create new session and insert into both maps
 	CStdString trackingId = m_alphaCounter.GetNext();
+	LOG4CXX_INFO(m_log, "New Voip session 2099 " + CStdString((const char*)interfaceName));
 	VoIpSessionRef newSession(new VoIpSession(trackingId, interfaceName));
 	if(DLLCONFIG.m_sipCallPickUpSupport)
 	{
@@ -2767,6 +2768,7 @@ void VoIpSessions::ReportSkinnyCallInfo(SkCallInfoStruct* callInfo, IpHeaderStru
 
 	// create new session and insert into the callid map
 	CStdString trackingId = m_alphaCounter.GetNext();
+		LOG4CXX_INFO(m_log, "New Voip session 2771");
 	VoIpSessionRef session(new VoIpSession(trackingId));
 	session->m_callId = callId;
 	session->m_endPointIp = ipHeader->ip_dest;	// CallInfo message always goes from CM to endpoint
@@ -3318,6 +3320,7 @@ void VoIpSessions::ReportSkinnyOpenReceiveChannelAck(SkOpenReceiveChannelAckStru
 
 				// create new session and insert into the ipAndPort
 				CStdString trackingId = m_alphaCounter.GetNext();
+					LOG4CXX_INFO(m_log, "New Voip session 3323");
 				VoIpSessionRef session(new VoIpSession(trackingId));
 				session->m_endPointIp = openReceive->endpointIpAddr;
 				session->m_endPointSignallingPort = ntohs(tcpHeader->source);
@@ -3376,6 +3379,7 @@ void VoIpSessions::ReportSkinnyStartMediaTransmission(SkStartMediaTransmissionSt
 
 				// create new session and insert into the ipAndPort
 				CStdString trackingId = m_alphaCounter.GetNext();
+					LOG4CXX_INFO(m_log, "New Voip session 3382");
 				VoIpSessionRef session(new VoIpSession(trackingId));
 				session->m_endPointIp = ipHeader->ip_dest;	// CallInfo StartMediaTransmission always goes from CM to endpoint 
 				session->m_protocol = VoIpSession::ProtSkinny;
@@ -3980,6 +3984,7 @@ void VoIpSessions::ReportRtpPacket(RtpPacketInfoRef& rtpPacket)
 
 		// create new Raw RTP session and insert into IP+Port map
 		CStdString trackingId = m_alphaCounter.GetNext();
+			LOG4CXX_INFO(m_log, "New Voip session 3987");
 		VoIpSessionRef session(new VoIpSession(trackingId));
 		session->m_protocol = VoIpSession::ProtRawRtp;
 
@@ -4699,6 +4704,7 @@ CStdString VoIpSessions::StopCapture(CStdString& party, CStdString& qos)
 
 		// This session might be stopped prematurely by this API call, preserve its metadata into a new session which will gather the subsequent RTP packets
 		CStdString nextTrackId = m_alphaCounter.GetNext();
+			LOG4CXX_INFO(m_log, "New Voip session 4707");
 		VoIpSessionRef newSession(new VoIpSession(nextTrackId));
 		CopyMetadataToNewSession(session, newSession);
 
@@ -4741,6 +4747,7 @@ void VoIpSessions::StopCaptureOrkuid(CStdString& orkuid, CStdString& qos)
 
 		// This session might be stopped prematurely by this API call, preserve its metadata into a new session which will gather the subsequent RTP packets
 		CStdString nextTrackId = m_alphaCounter.GetNext();
+			LOG4CXX_INFO(m_log, "New Voip session 4750");
 		VoIpSessionRef newSession(new VoIpSession(nextTrackId));
 		CopyMetadataToNewSession(session, newSession);
 
@@ -4783,6 +4790,7 @@ CStdString VoIpSessions::StopCaptureNativeCallId(CStdString& nativecallid, CStdS
 
 		// This session might be stopped prematurely by this API call, preserve its metadata into a new session which will gather the subsequent RTP packets
 		CStdString nextTrackId = m_alphaCounter.GetNext();
+			LOG4CXX_INFO(m_log, "New Voip session 4793");
 		VoIpSessionRef newSession(new VoIpSession(nextTrackId));
 		CopyMetadataToNewSession(session, newSession);
 

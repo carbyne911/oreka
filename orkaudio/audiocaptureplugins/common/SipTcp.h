@@ -16,7 +16,7 @@
 
 #include "SafeBuffer.h"
 
-bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader);
+bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader, u_char* interfaceName);
 
 using namespace log4cxx;
 
