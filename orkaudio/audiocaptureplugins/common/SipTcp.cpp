@@ -22,7 +22,6 @@
 
 static LoggerPtr s_sipTcpPacketLog = Logger::getLogger("packet.tcpsip");
 
-// ============================================================
 
 static char* memFindAfter(const char* toFind, char* start, char* stop)
 {
@@ -125,7 +124,6 @@ void SipTcpStream::AddTcpPacket(u_char *pBuffer, int packetLen)
 {
 	m_tcpBuffer->Add(pBuffer, packetLen);
 }
-
 
 extern bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct *udpHeader, u_char* payload, u_char* packetEnd, u_char* interfaceName);
 extern bool TrySip200Ok(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct *udpHeader, u_char* payload, u_char* packetEnd);
