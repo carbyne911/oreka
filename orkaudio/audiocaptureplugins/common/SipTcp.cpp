@@ -138,7 +138,7 @@ extern bool TrySipInfo(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipH
 extern bool TrySipSubscribe(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct *udpHeader, u_char* payload, u_char* packetEnd);
 extern bool TryLogFailedSip(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct *udpHeader, u_char* payload, u_char* packetEnd);
 
-bool ParseSipMessage(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,TcpHeaderStruct *tcpHeader, u_char* payload, u_char* packetEnd) {
+bool ParseSipMessage(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,TcpHeaderStruct *tcpHeader, u_char* payload, u_char* packetEnd, u_char* interfaceName) {
 
 		UdpHeaderStruct udpHeader;
 
@@ -147,7 +147,7 @@ bool ParseSipMessage(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHea
 
 		udpHeader.len = htons((packetEnd-payload)+sizeof(UdpHeaderStruct));
 
-		bool usefulPacket = TrySipInvite(ethernetHeader, ipHeader, &udpHeader, payload, packetEnd, NULL);
+		bool usefulPacket = TrySipInvite(ethernetHeader, ipHeader, &udpHeader, payload, packetEnd, interfaceName);
 
 		if(!usefulPacket)
 		{
@@ -198,7 +198,7 @@ bool ParseSipMessage(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHea
 }
 
 //Returns the total number of bytes consumed corresponding to one or more successfully parsed complete SIP messages in the input byte stream. If no complete SIP message could be found, returns zero
-size_t ParseSipStream(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader, char* bufferStart, char *bufferEnd) 
+size_t ParseSipStream(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader, char* bufferStart, char *bufferEnd, u_char* interfaceName) 
 {
 	size_t offset=0;
 	char * sipMessageStart = bufferStart;
@@ -223,7 +223,7 @@ size_t ParseSipStream(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHe
 		}	
 			
 		// We have a complete SIP message, try to parse it 
-		ParseSipMessage(ethernetHeader, ipHeader, tcpHeader, (u_char*) sipMessageStart, (u_char*) sipMessageEnd) ;
+		ParseSipMessage(ethernetHeader, ipHeader, tcpHeader, (u_char*) sipMessageStart, (u_char*) sipMessageEnd, interfaceName) ;
 
 		offset = sipMessageEnd - bufferStart;
 		sipMessageStart = sipMessageEnd;
@@ -232,7 +232,7 @@ size_t ParseSipStream(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHe
 	return offset;
 }
 
-bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)
+bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader, u_char* interfaceName)
 {
 	static std::list<SipTcpStreamRef> s_SipTcpStreams;
 	CStdString logMsg;
@@ -275,7 +275,7 @@ bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, T
 		   boost::starts_with((char*)tcpPayload,"SIP/2.0 6") ||
 		   boost::starts_with((char*)tcpPayload,"CANCEL ")) )
 	{
-		size_t tcpSipStreamOffset = ParseSipStream(ethernetHeader, ipHeader, tcpHeader, (char*)tcpPayload, (char*)tcpPayload + tcpPayloadLen);
+		size_t tcpSipStreamOffset = ParseSipStream(ethernetHeader, ipHeader, tcpHeader, (char*)tcpPayload, (char*)tcpPayload + tcpPayloadLen, interfaceName);
 		
 		if(tcpSipStreamOffset != tcpPayloadLen)
 		{
@@ -321,7 +321,7 @@ bool TrySipTcp(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, T
 		   (streamRef->m_expectingSeqNo == ntohl(tcpHeader->seq)) ) 
 		{
 			streamRef->AddTcpPacket(tcpPayload, tcpPayloadLen);
-			streamRef->m_offset += ParseSipStream(ethernetHeader, ipHeader, tcpHeader, (char*)streamRef->GetBufferWithOffset(), (char*)streamRef->GetBufferEnd());
+			streamRef->m_offset += ParseSipStream(ethernetHeader, ipHeader, tcpHeader, (char*)streamRef->GetBufferWithOffset(), (char*)streamRef->GetBufferEnd(), interfaceName);
 			streamRef->m_expectingSeqNo += tcpPayloadLen;
 			result = true;
 		} 

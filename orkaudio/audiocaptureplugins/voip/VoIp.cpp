@@ -584,7 +584,7 @@ void DetectUsefulUdpPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 	}
 }
 
-void DetectUsefulTcpPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, int ipHeaderLength, u_char* ipPacketEnd)
+void DetectUsefulTcpPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, int ipHeaderLength, u_char* ipPacketEnd, u_char* interfaceName)
 {
 	bool detectedUsefulPacket = false;
 	TcpHeaderStruct* tcpHeader = (TcpHeaderStruct*)((char *)ipHeader + ipHeaderLength);
@@ -599,7 +599,7 @@ void DetectUsefulTcpPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 		//CStdString tcpSeq;
 		//memToHex((unsigned char *)&tcpHeader->seq, 4, tcpSeq);
 		MutexSentinel mutexSentinel(s_mutex);		// serialize access for competing pcap threads
-		detectedUsefulPacket = TrySipTcp(ethernetHeader, ipHeader, tcpHeader);
+		detectedUsefulPacket = TrySipTcp(ethernetHeader, ipHeader, tcpHeader, interfaceName);
 	}
 	if(!detectedUsefulPacket && DLLCONFIG.m_urlExtractorEnable == true && ntohs(tcpHeader->dest) == DLLCONFIG.m_urlExtractorPort)
 	{
@@ -722,7 +722,7 @@ void ProcessVXLANPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ip
 	}
 	else if(encapsulatedIpHeader->ip_p == IPPROTO_TCP)
 	{
-		DetectUsefulTcpPacket(encapsulatedEthernetHeader, encapsulatedIpHeader, encapsulatedIpHeaderLength, encapsulatedIpPacketEnd);
+		DetectUsefulTcpPacket(encapsulatedEthernetHeader, encapsulatedIpHeader, encapsulatedIpHeaderLength, encapsulatedIpPacketEnd, interfaceName);
 	}
 }
 
@@ -744,7 +744,7 @@ void ProcessTransportLayer(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 	}
 	else if(ipHeader->ip_p == IPPROTO_TCP)
 	{
-		DetectUsefulTcpPacket(ethernetHeader, ipHeader, ipHeaderLength, ipPacketEnd);
+		DetectUsefulTcpPacket(ethernetHeader, ipHeader, ipHeaderLength, ipPacketEnd, interfaceName);
 	}
 	else if(ipHeader->ip_p == IPPROTO_GRE)
 	{
@@ -790,7 +790,7 @@ void ProcessTransportLayer(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 			}
 			else if(encapsulatedIpHeader->ip_p == IPPROTO_TCP)
 			{
-				DetectUsefulTcpPacket(encapsulatedEthernetHeader, encapsulatedIpHeader, encapsulatedIpHeaderLength, encapsulatedIpPacketEnd);
+				DetectUsefulTcpPacket(encapsulatedEthernetHeader, encapsulatedIpHeader, encapsulatedIpHeaderLength, encapsulatedIpPacketEnd, interfaceName);
 			}
 		}
 	}
